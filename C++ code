@@ -1,0 +1,79 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include <Servo.h>
+// Define pin numbers
+const int irGatePin = 2;       // IR sensor at the gate
+const int irSlot1Pin = 3;      // IR sensor for Slot 1
+const int irSlot2Pin = 4;      // IR sensor for Slot 2
+const int irSlot3Pin = 5;      // IR sensor for Slot 3
+const int servoPin = 9;        // Servo motor pin
+// Create servo and LCD objects
+Servo gateServo;
+LiquidCrystal_I2C lcd(0x27, 16, 2); // LCD address 0x27, 16 columns and 2 rows
+void setup() {
+  // Initialize pins
+  pinMode(irGatePin, INPUT);
+  pinMode(irSlot1Pin, INPUT);
+  pinMode(irSlot2Pin, INPUT);
+  pinMode(irSlot3Pin, INPUT);
+
+  // Initialize servo
+  gateServo.attach(servoPin);
+  gateServo.write(0); // Initially closed gate
+
+  // Initialize LCD
+  lcd.begin();
+  lcd.backlight();
+  lcd.setCursor(0, 0);
+  lcd.print("Parking Slots:");
+  lcd.setCursor(0, 1);
+  lcd.print("Slot 1: Free");
+  lcd.setCursor(8, 1);
+  lcd.print("Slot 2: Free");
+  lcd.setCursor(0, 2);
+  lcd.print("Slot 3: Free");
+
+  // Initialize serial monitor
+  Serial.begin(9600);
+}
+
+void loop() {
+  bool isGateOccupied = digitalRead(irGatePin);
+  bool isSlot1Occupied = digitalRead(irSlot1Pin);
+  bool isSlot2Occupied = digitalRead(irSlot2Pin);
+  bool isSlot3Occupied = digitalRead(irSlot3Pin);
+
+  // Update LCD display
+  lcd.setCursor(8, 1);
+  lcd.print(isSlot1Occupied ? "Occupied " : "Free      ");
+  lcd.setCursor(8, 1);
+  lcd.print(isSlot2Occupied ? "Occupied " : "Free      ");
+  lcd.setCursor(0, 2);
+  lcd.print(isSlot3Occupied ? "Occupied " : "Free      ");
+
+  // Check parking slots and control gate
+  if (isGateOccupied) {
+    if (!isSlot1Occupied || !isSlot2Occupied || !isSlot3Occupied) {
+      // There is at least one empty slot
+      gateServo.write(90); // Open the gate
+    } else {
+      // All slots are occupied
+      gateServo.write(0); // Close the gate
+    }
+  } else {
+    // Gate is not occupied, ensure gate is closed
+    gateServo.write(0); // Close the gate
+  }
+
+  // Debug information
+  Serial.print("Gate: ");
+  Serial.println(isGateOccupied ? "Occupied" : "Free");
+  Serial.print("Slot 1: ");
+  Serial.println(isSlot1Occupied ? "Occupied" : "Free");
+  Serial.print("Slot 2: ");
+  Serial.println(isSlot2Occupied ? "Occupied" : "Free");
+  Serial.print("Slot 3: ");
+  Serial.println(isSlot3Occupied ? "Occupied" : "Free");
+
+  delay(500); // Delay to prevent excessive updates
+}
