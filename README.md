@@ -1,1 +1,2 @@
 # Smart-Parking-System
+The Smart Parking System is an IoT-based project that identifies and displays available parking slots in real-time, helping drivers efficiently find parking. Built using C++ code, the system integrates Arduino Uno, sensors, actuators, and servo motors to detect vehicle presence and control parking access. It improves parking management by automating slot detection and notification processes.
